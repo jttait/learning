@@ -1,0 +1,11 @@
+[ req ]
+prompt = no
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+
+[ req_distinguished_name ]
+commonName = BadClient
+
+[ v3_req ]
+basicConstraints = CA:false
+extendedKeyUsage = clientAuth
