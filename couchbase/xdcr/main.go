@@ -1,16 +1,16 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"time"
-	"flag"
 
 	"github.com/couchbase/gocb/v2"
 )
 
 func main() {
 	clusterNumberFlag := flag.Int("cluster", 1, "Cluster - 1 or 2")
-	operationFlag := flag.Stirng("operation", "check", "Operation - upsert or check or remove")
+	operationFlag := flag.String("operation", "check", "Operation - upsert or check or remove")
 	idFlag := flag.String("id", "", "Document ID")
 	valueFlag := flag.String("value", "", "Document value")
 	flag.Parse()
@@ -78,7 +78,7 @@ func connectToClusterAndReturnCollection(clusterNumber int) *gocb.Collection {
 		log.Fatal(err)
 	}
 	bucket := cluster.Bucket("test")
-	err = bucket.WaitUntilReady(5 * time.Second, nil)
+	err = bucket.WaitUntilReady(5*time.Second, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
