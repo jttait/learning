@@ -60,7 +60,7 @@ setup() {
 		-d username=$USERNAME \
 		-d password=$PASSWORD \
 		-d hostname=$CLUSTER2_IP_ADDRESS
-	curl -u $USERNAME:$PASSWORD http://$CLUSTER1_LOCALHOST/pools/default/remoteClusters \
+	curl -u $USERNAME:$PASSWORD http://$CLUSTER2_LOCALHOST/pools/default/remoteClusters \
 		-d name=cluster1 \
 		-d username=$USERNAME \
 		-d password=$PASSWORD \
