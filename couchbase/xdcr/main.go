@@ -49,7 +49,7 @@ func check(clusterNumber int, id string, content string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if name != inDocument.Content {
+	if content != inDocument.Content {
 		log.Fatal("Document check failed!")
 	}
 }
