@@ -12,7 +12,7 @@ func main() {
 	clusterNumberFlag := flag.Int("cluster", 1, "Cluster - 1 or 2")
 	operationFlag := flag.String("operation", "check", "Operation - upsert or check or remove")
 	idFlag := flag.String("id", "", "Document ID")
-	contentFlag := flag.String("value", "", "Document content")
+	contentFlag := flag.String("content", "", "Document content")
 	flag.Parse()
 	if *operationFlag == "upsert" {
 		upsert(*clusterNumberFlag, *idFlag, *contentFlag)
