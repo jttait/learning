@@ -32,74 +32,130 @@ setup() {
 	CLUSTER2_LOCALHOST=localhost:7091
 
 	# Initialize the Couchbase clusters
-	curl -X POST http://$CLUSTER1_LOCALHOST/clusterInit \
-		-d username=$USERNAME \
-		-d password=$PASSWORD \
-		-d clusterName=cluster1 \
-		-d port=8091 \
-		-d services=kv
-	curl -X POST http://$CLUSTER2_LOCALHOST/clusterInit \
-		-d username=$USERNAME \
-		-d password=$PASSWORD \
-		-d clusterName=cluster2 \
-		-d port=8091 \
-		-d services=kv
+	curl http://$CLUSTER1_LOCALHOST/clusterInit \
+		--request POST \
+		--silent \
+		--output /dev/null \
+		--data username=$USERNAME \
+		--data password=$PASSWORD \
+		--data clusterName=cluster1 \
+		--data port=8091 \
+		--data services=kv
+	curl http://$CLUSTER2_LOCALHOST/clusterInit \
+		--request POST \
+		--silent \
+		--output /dev/null \
+		--data username=$USERNAME \
+		--data password=$PASSWORD \
+		--data clusterName=cluster2 \
+		--data port=8091 \
+		--data services=kv
 	sleep 15
 
 	# Create buckets
-	curl -X POST -u $USERNAME:$PASSWORD http://$CLUSTER1_LOCALHOST/pools/default/buckets \
-		-d name=test \
-		-d ramQuota=1000
-	curl -X POST -u $USERNAME:$PASSWORD http://$CLUSTER2_LOCALHOST/pools/default/buckets \
-		-d name=test \
-		-d ramQuota=1000
+	curl http://$CLUSTER1_LOCALHOST/pools/default/buckets \
+		--request POST \
+		--user $USERNAME:$PASSWORD \
+		--silent \
+		--output /dev/null \
+		--data name=test \
+		--data ramQuota=1000
+	curl http://$CLUSTER2_LOCALHOST/pools/default/buckets \
+		--request POST \
+		--user $USERNAME:$PASSWORD \
+		--silent \
+		--output /dev/null \
+		--data name=test \
+		--data ramQuota=1000
 
 	# Setup bidirectional XDCR
-	curl -u $USERNAME:$PASSWORD http://$CLUSTER1_LOCALHOST/pools/default/remoteClusters \
-		-d name=cluster2 \
-		-d username=$USERNAME \
-		-d password=$PASSWORD \
-		-d hostname=$CLUSTER2_IP_ADDRESS
-	curl -u $USERNAME:$PASSWORD http://$CLUSTER2_LOCALHOST/pools/default/remoteClusters \
-		-d name=cluster1 \
-		-d username=$USERNAME \
-		-d password=$PASSWORD \
-		-d hostname=$CLUSTER1_IP_ADDRESS
+	curl http://$CLUSTER1_LOCALHOST/pools/default/remoteClusters \
+		--user $USERNAME:$PASSWORD \
+		--silent \
+		--output /dev/null \
+		--data name=cluster2 \
+		--data username=$USERNAME \
+		--data password=$PASSWORD \
+		--data hostname=$CLUSTER2_IP_ADDRESS
+	curl http://$CLUSTER2_LOCALHOST/pools/default/remoteClusters \
+		--user $USERNAME:$PASSWORD \
+		--silent \
+		--output /dev/null \
+		--data name=cluster1 \
+		--data username=$USERNAME \
+		--data password=$PASSWORD \
+		--data hostname=$CLUSTER1_IP_ADDRESS
 	sleep 5
-	curl -X POST -u $USERNAME:$PASSWORD http://$CLUSTER1_LOCALHOST/controller/createReplication \
-		-d fromBucket=test \
-		-d toCluster=cluster2 \
-		-d toBucket=test \
-		-d replicationType=continuous
-	curl -X POST -u $USERNAME:$PASSWORD http://$CLUSTER2_LOCALHOST/controller/createReplication \
-		-d fromBucket=test \
-		-d toCluster=cluster1 \
-		-d toBucket=test \
-		-d replicationType=continuous
+	curl http://$CLUSTER1_LOCALHOST/controller/createReplication \
+		--request POST \
+		--user $USERNAME:$PASSWORD \
+		--silent \
+		--output /dev/null \
+		--data fromBucket=test \
+		--data toCluster=cluster2 \
+		--data toBucket=test \
+		--data replicationType=continuous
+	curl http://$CLUSTER2_LOCALHOST/controller/createReplication \
+		--request POST \
+		--user $USERNAME:$PASSWORD \
+		--silent \
+		--output /dev/null \
+		--data fromBucket=test \
+		--data toCluster=cluster1 \
+		--data toBucket=test \
+		--data replicationType=continuous
 }
 
 pause_xdcr_cluster1_to_cluster2() {
-	CLUSTER1_SETTINGS_URI=$(curl -X GET -u $USERNAME:$PASSWORD http://$CLUSTER1_LOCALHOST/pools/default/tasks | jq -r '.[] | select(.type == "xdcr") | .settingsURI')
-	curl -X POST -u $USERNAME:$PASSWORD http://$CLUSTER1_LOCALHOST$CLUSTER1_SETTINGS_URI \
-		-d pauseRequested=true
+	CLUSTER1_SETTINGS_URI=$(
+		curl --user $USERNAME:$PASSWORD --silent http://$CLUSTER1_LOCALHOST/pools/default/tasks | \
+			jq -r '.[] | select(.type == "xdcr") | .settingsURI'
+	)
+	curl http://$CLUSTER1_LOCALHOST$CLUSTER1_SETTINGS_URI \
+		--request POST \
+		--user $USERNAME:$PASSWORD \
+		--silent \
+		--output /dev/null \
+		--data pauseRequested=true
 }
 
 pause_xdcr_cluster2_to_cluster1() {
-	CLUSTER2_SETTINGS_URI=$(curl -X GET -u $USERNAME:$PASSWORD http://$CLUSTER2_LOCALHOST/pools/default/tasks | jq -r '.[] | select(.type == "xdcr") | .settingsURI')
-	curl -X POST -u $USERNAME:$PASSWORD http://$CLUSTER2_LOCALHOST$CLUSTER2_SETTINGS_URI \
-		-d pauseRequested=true
+	CLUSTER2_SETTINGS_URI=$(
+		curl --user $USERNAME:$PASSWORD --silent http://$CLUSTER2_LOCALHOST/pools/default/tasks | \
+			jq -r '.[] | select(.type == "xdcr") | .settingsURI'
+	)
+	curl http://$CLUSTER2_LOCALHOST$CLUSTER2_SETTINGS_URI \
+		--request POST \
+		--user $USERNAME:$PASSWORD \
+		--silent \
+		--output /dev/null \
+		--data pauseRequested=true
 }
 
 resume_xdcr_cluster1_to_cluster2() {
-	CLUSTER1_SETTINGS_URI=$(curl -X GET -u $USERNAME:$PASSWORD http://$CLUSTER1_LOCALHOST/pools/default/tasks | jq -r '.[] | select(.type == "xdcr") | .settingsURI')
-	curl -X POST -u $USERNAME:$PASSWORD http://$CLUSTER1_LOCALHOST$CLUSTER1_SETTINGS_URI \
-		-d pauseRequested=false
+	CLUSTER1_SETTINGS_URI=$(
+		curl --user $USERNAME:$PASSWORD --silent http://$CLUSTER1_LOCALHOST/pools/default/tasks | \
+			jq -r '.[] | select(.type == "xdcr") | .settingsURI'
+	)
+	curl http://$CLUSTER1_LOCALHOST$CLUSTER1_SETTINGS_URI \
+		--request POST \
+		--user $USERNAME:$PASSWORD \
+		--silent \
+		--output /dev/null \
+		--data pauseRequested=false
 }
 
 resume_xdcr_cluster2_to_cluster1() {
-	CLUSTER2_SETTINGS_URI=$(curl -X GET -u $USERNAME:$PASSWORD http://$CLUSTER2_LOCALHOST/pools/default/tasks | jq -r '.[] | select(.type == "xdcr") | .settingsURI')
-	curl -X POST -u $USERNAME:$PASSWORD http://$CLUSTER2_LOCALHOST$CLUSTER2_SETTINGS_URI \
-		-d pauseRequested=false
+	CLUSTER2_SETTINGS_URI=$(
+		curl --user $USERNAME:$PASSWORD --silent http://$CLUSTER2_LOCALHOST/pools/default/tasks | \
+			jq -r '.[] | select(.type == "xdcr") | .settingsURI'
+	)
+	curl http://$CLUSTER2_LOCALHOST$CLUSTER2_SETTINGS_URI \
+		--request POST \
+		--user $USERNAME:$PASSWORD \
+		--silent \
+		--output /dev/null \
+		--data pauseRequested=false
 }
 
 sdk() {
